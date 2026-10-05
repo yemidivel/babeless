@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07080c">
+  <meta name="description" content="A little name reveal for Stephanie.">
+  <title>For Stephanie</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Georgia, "Times New Roman", serif;
+      background: #07080c;
+      color: #fff8ee;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #07080c;
+    }
+
+    body { min-height: 100vh; min-height: 100dvh; }
+
+    .stage {
+      position: fixed;
+      inset: -3%;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        radial-gradient(ellipse at 50% 44%, #211c24 0%, #101016 34%, #07080c 74%);
+      transform: scale(1);
+      transform-origin: 50% 45%;
+      transition: transform 11s cubic-bezier(.18,.62,.23,1);
+    }
+
+    .stage.is-running { transform: scale(1.065); }
+    .stage.is-finale { transform: scale(1.095); transition-duration: 13s; }
+
+    .portrait {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      clip-path: inset(42% 35% round 34px);
+      transition:
+        clip-path 1s cubic-bezier(.2,.7,.2,1),
+        opacity 900ms ease;
+      opacity: .86;
+      background:
+        radial-gradient(ellipse at 50% 38%, #9c6b60 0%, #51414a 34%, #191923 72%);
+    }
+
+    .portrait img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 42%;
+      filter: saturate(.88) brightness(.86);
+      transform: scale(1.015);
+      transition: transform 13s cubic-bezier(.18,.62,.23,1), filter 1.8s ease;
+    }
+
+    .portrait.is-missing img { display: none; }
+
+    .portrait-fallback {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      color: rgba(255, 239, 218, .78);
+      font-size: clamp(1.5rem, 7vw, 3.4rem);
+      font-style: italic;
+      letter-spacing: .06em;
+      text-shadow: 0 2px 24px rgba(255, 198, 151, .3);
+    }
+
+    .portrait.is-missing .portrait-fallback { display: grid; }
+
+    .shade {
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(5,6,10,.52) 0%, transparent 29%, transparent 57%, rgba(5,6,10,.66) 100%),
+        radial-gradient(ellipse at 50% 42%, transparent 22%, rgba(5,6,10,.46) 100%),
+        rgba(5,6,10,.22);
+      transition: background-color 1.6s ease, opacity 1.6s ease;
+    }
+
+    .particles {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .light-leak {
+      position: absolute;
+      z-index: 3;
+      inset: -25% -50%;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateX(-45%) rotate(-13deg);
+      background: linear-gradient(90deg, transparent 36%, rgba(255,211,173,.13) 49%, rgba(255,241,216,.27) 51%, rgba(241,178,193,.1) 55%, transparent 67%);
+    }
+
+    .frame-copy {
+      position: absolute;
+      z-index: 4;
+      left: 50%;
+      width: min(88vw, 30rem);
+      text-align: center;
+      pointer-events: none;
+      opacity: 1;
+      transform: translateX(-50%);
+      transition: opacity 700ms ease, transform 900ms ease;
+    }
+
+    .intro-copy {
+      top: max(4.6rem, calc(env(safe-area-inset-top) + 2.6rem));
+      color: rgba(255, 243, 226, .66);
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: .59rem;
+      font-weight: 500;
+      letter-spacing: .32em;
+      text-transform: uppercase;
+    }
+
+    .closing-copy {
+      bottom: max(3.4rem, calc(env(safe-area-inset-bottom) + 2.1rem));
+      color: rgba(255, 243, 226, .55);
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: .55rem;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+    }
+
+    .final-copy {
+      bottom: max(11vh, calc(env(safe-area-inset-bottom) + 5rem));
+      opacity: 0;
+      transform: translate(-50%, 1.1rem);
+      transition-delay: 350ms;
+    }
+
+    .final-copy .eyebrow {
+      margin: 0 0 .8rem;
+      color: rgba(255, 240, 220, .8);
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: .58rem;
+      letter-spacing: .38em;
+      text-transform: uppercase;
+    }
+
+    .final-copy h1 {
+      margin: 0;
+      color: #fff8ee;
+      font-size: clamp(3.5rem, 16vw, 6.8rem);
+      font-weight: 400;
+      letter-spacing: .015em;
+      line-height: .98;
+      text-shadow: 0 5px 34px rgba(8, 6, 10, .58), 0 0 28px rgba(255, 219, 191, .19);
+    }
+
+    .replay {
+      position: absolute;
+      z-index: 5;
+      left: 50%;
+      bottom: max(3.6vh, calc(env(safe-area-inset-bottom) + 1.15rem));
+      min-height: 2.8rem;
+      padding: .78rem 1.5rem;
+      border: 1px solid rgba(255, 242, 222, .48);
+      border-radius: 999px;
+      background: rgba(10, 9, 13, .27);
+      color: #fff8ee;
+      font: 500 .66rem/1 "Segoe UI", Arial, sans-serif;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, .65rem);
+      transition: opacity 600ms ease, transform 600ms ease, background-color 250ms ease, border-color 250ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .replay:hover, .replay:focus-visible {
+      outline: none;
+      border-color: rgba(255, 242, 222, .82);
+      background: rgba(255, 245, 229, .12);
+    }
+
+    .stage.is-finale .portrait {
+      clip-path: inset(0 round 0);
+      opacity: 1;
+      transition-duration: 1.7s, 1.2s;
+    }
+
+    .stage.is-finale .portrait img {
+      filter: saturate(.94) brightness(.88);
+      transform: scale(1.105);
+    }
+
+    .stage.is-finale .shade {
+      background:
+        linear-gradient(180deg, rgba(5,6,10,.08) 0%, transparent 30%, rgba(5,6,10,.07) 49%, rgba(5,6,10,.68) 100%),
+        linear-gradient(90deg, rgba(5,6,10,.12), transparent 35%, transparent 70%, rgba(5,6,10,.1));
+    }
+
+    .stage.is-finale .intro-copy,
+    .stage.is-finale .closing-copy {
+      opacity: 0;
+      transform: translate(-50%, -.5rem);
+    }
+
+    .stage.is-finale .final-copy {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .stage.is-finale .light-leak { animation: light-leak 4.5s 250ms ease-out both; }
+
+    .stage.can-replay .replay {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, 0);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @keyframes light-leak {
+      0% { opacity: 0; transform: translateX(-45%) rotate(-13deg); }
+      22% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(45%) rotate(-13deg); }
+    }
+
+    @media (max-height: 620px) {
+      .intro-copy { top: max(2.8rem, calc(env(safe-area-inset-top) + 1.6rem)); }
+      .closing-copy { bottom: max(2.7rem, calc(env(safe-area-inset-bottom) + 1.5rem)); }
+      .final-copy { bottom: max(13vh, calc(env(safe-area-inset-bottom) + 4.4rem)); }
+      .final-copy h1 { font-size: clamp(3rem, 13vh, 5.4rem); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" id="stage" aria-label="A name reveal for Stephanie">
+    <div class="portrait" id="portrait">
+      <!-- Replace this file later with another local portrait image if needed. -->
+      <img id="portrait-image" src="./portrait.jpg" alt="Stephanie">
+      <div class="portrait-fallback" aria-hidden="true"><span>For Stephanie</span></div>
+    </div>
+    <div class="shade" aria-hidden="true"></div>
+    <canvas class="particles" id="particles" aria-hidden="true"></canvas>
+    <div class="light-leak" aria-hidden="true"></div>
+
+    <p class="frame-copy intro-copy">A little light, just for you</p>
+    <p class="frame-copy closing-copy">Some things are worth spelling out</p>
+    <section class="frame-copy final-copy" aria-hidden="true">
+      <p class="eyebrow">A name that lights up the room</p>
+      <h1>Stephanie</h1>
+    </section>
+    <button class="replay" id="replay" type="button">Watch again</button>
+    <p class="sr-only" id="announcement" aria-live="polite"></p>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const name = "STEPHANIE";
+      const introDelay = 900;
+      const letterDuration = 1120;
+      const gatherDuration = 790;
+      const finaleHold = 4700;
+      const maxParticles = 150;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const stage = document.getElementById("stage");
+      const portrait = document.getElementById("portrait");
+      const image = document.getElementById("portrait-image");
+      const canvas = document.getElementById("particles");
+      const context = canvas.getContext("2d", { alpha: true });
+      const replay = document.getElementById("replay");
+      const announcement = document.getElementById("announcement");
+      const finalCopy = document.querySelector(".final-copy");
+
+      replay.disabled = true;
+
+      let width = 0;
+      let height = 0;
+      let pixelRatio = 1;
+      let startTime = 0;
+      let activeLetter = -1;
+      let letterParticles = [];
+      let floaters = [];
+      let finaleAt = 0;
+      let complete = false;
+      let rafId = 0;
+      let previousFrame = 0;
+
+      image.addEventListener("error", () => portrait.classList.add("is-missing"));
+      image.addEventListener("load", () => portrait.classList.remove("is-missing"));
+      if (image.complete && image.naturalWidth === 0) portrait.classList.add("is-missing");
+
+      function resize() {
+        width = stage.clientWidth;
+        height = stage.clientHeight;
+        pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+        canvas.width = Math.round(width * pixelRatio);
+        canvas.height = Math.round(height * pixelRatio);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        floaters = Array.from({ length: 23 }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: 2 + Math.random() * 7,
+          speed: .035 + Math.random() * .09,
+          drift: (Math.random() - .5) * .12,
+          phase: Math.random() * Math.PI * 2,
+          symbol: ["·", "✧", "✦", "◇"][Math.floor(Math.random() * 4)]
+        }));
+        if (activeLetter >= 0 && !complete) buildLetter(activeLetter);
+      }
+
+      function setPortraitReveal(amount) {
+        const reveal = Math.max(0, Math.min(1, amount));
+        const vertical = 42 * (1 - reveal) + 8 * reveal;
+        const horizontal = 35 * (1 - reveal) + 8 * reveal;
+        const radius = 34 * (1 - reveal) + 13 * reveal;
+        portrait.style.clipPath = `inset(${vertical}% ${horizontal}% round ${radius}px)`;
+      }
+
+      function buildLetter(index) {
+        activeLetter = index;
+        const fontSize = Math.min(235, Math.max(130, Math.min(width * .62, height * .245)));
+        const mask = document.createElement("canvas");
+        mask.width = Math.ceil(fontSize * 1.7);
+        mask.height = Math.ceil(fontSize * 1.35);
+        const maskContext = mask.getContext("2d", { willReadFrequently: true });
+        maskContext.clearRect(0, 0, mask.width, mask.height);
+        maskContext.fillStyle = "#fff";
+        maskContext.font = `600 ${fontSize}px Georgia, "Times New Roman", serif`;
+        maskContext.textAlign = "center";
+        maskContext.textBaseline = "middle";
+        maskContext.fillText(name[index], mask.width / 2, mask.height / 2);
+        const pixels = maskContext.getImageData(0, 0, mask.width, mask.height).data;
+        const points = [];
+        const sampleStep = 5;
+
+        for (let y = 0; y < mask.height; y += sampleStep) {
+          for (let x = 0; x < mask.width; x += sampleStep) {
+            if (pixels[(y * mask.width + x) * 4 + 3] > 80) points.push({ x, y });
+          }
+        }
+
+        const stride = Math.max(1, Math.ceil(points.length / maxParticles));
+        const selected = points.filter((_, pointIndex) => pointIndex % stride === 0).slice(0, maxParticles);
+        const previous = letterParticles;
+        letterParticles = selected.map((point, particleIndex) => {
+          const old = previous.length ? previous[(particleIndex * 7) % previous.length] : null;
+          const targetX = width / 2 + point.x - mask.width / 2;
+          const targetY = height * .425 + point.y - mask.height / 2;
+          const spreadX = width * (.2 + Math.random() * .31);
+          const spreadY = height * (.12 + Math.random() * .23);
+          return {
+            x: old ? old.targetX + (Math.random() - .5) * width * .32 : width / 2 + (Math.random() - .5) * spreadX * 2,
+            y: old ? old.targetY + (Math.random() - .5) * height * .28 : height * .425 + (Math.random() - .5) * spreadY * 2,
+            targetX,
+            targetY,
+            size: 7 + Math.random() * 7,
+            phase: Math.random() * Math.PI * 2,
+            symbol: ["✧", "✦", "◇", "·", "+"][Math.floor(Math.random() * 5)],
+            color: ["#fff2dc", "#f5d8ca", "#d8e3ed", "#ffe6b9"][Math.floor(Math.random() * 4)]
+          };
+        });
+        announcement.textContent = `Now revealing the letter ${name[index]}.`;
+      }
+
+      function drawFloater(particle, time, dt) {
+        particle.y -= particle.speed * dt;
+        particle.x += particle.drift * dt + Math.sin(time * .00035 + particle.phase) * .035 * dt;
+        if (particle.y < -12) {
+          particle.y = height + 8;
+          particle.x = Math.random() * width;
+        }
+        if (particle.x < -12) particle.x = width + 8;
+        if (particle.x > width + 12) particle.x = -8;
+        const shimmer = .18 + (Math.sin(time * .001 + particle.phase) + 1) * .19;
+        context.globalAlpha = shimmer;
+        context.fillStyle = "#f5dfc4";
+        context.font = `${particle.size}px "Segoe UI Symbol", "Apple Symbols", serif`;
+        context.fillText(particle.symbol, particle.x, particle.y);
+      }
+
+      function drawLetter(progress, time) {
+        const eased = 1 - Math.pow(1 - Math.min(1, progress), 3);
+        const pulse = .86 + Math.sin(time * .0031) * .14;
+        for (const particle of letterParticles) {
+          const wobble = Math.sin(time * .002 + particle.phase) * (1 - eased) * 10;
+          const x = particle.x + (particle.targetX - particle.x) * eased;
+          const y = particle.y + (particle.targetY - particle.y) * eased;
+          const alpha = Math.min(1, .24 + eased * .86) * pulse;
+          context.globalAlpha = alpha;
+          context.fillStyle = particle.color;
+          context.shadowColor = particle.color;
+          context.shadowBlur = 8 + eased * 9;
+          context.font = `${particle.size}px "Segoe UI Symbol", "Apple Symbols", serif`;
+          context.fillText(particle.symbol, x + wobble, y);
+        }
+        context.shadowBlur = 0;
+        context.globalAlpha = 1;
+      }
+
+      function drawScatter(time) {
+        const elapsed = time - finaleAt;
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        for (const particle of letterParticles) {
+          const progress = Math.max(0, Math.min(1, (elapsed - particle.scatterDelay) / 1050));
+          if (progress >= 1) continue;
+          const eased = progress * (2 - progress);
+          const x = particle.targetX + (particle.scatterX - particle.targetX) * eased;
+          const y = particle.targetY + (particle.scatterY - particle.targetY) * eased;
+          context.globalAlpha = 1 - progress;
+          context.fillStyle = particle.color;
+          context.shadowColor = particle.color;
+          context.shadowBlur = 11 * (1 - progress);
+          context.font = `${particle.size}px "Segoe UI Symbol", "Apple Symbols", serif`;
+          context.fillText(particle.symbol, x, y);
+        }
+        context.shadowBlur = 0;
+        context.globalAlpha = 1;
+      }
+
+      function enterFinale(time) {
+        if (complete) return;
+        complete = true;
+        finaleAt = time;
+        for (const particle of letterParticles) {
+          particle.scatterX = particle.targetX + (Math.random() - .5) * width * .95;
+          particle.scatterY = particle.targetY + (Math.random() - .5) * height * .72;
+          particle.scatterDelay = Math.random() * 240;
+        }
+        stage.classList.remove("is-running");
+        stage.classList.add("is-finale");
+        portrait.style.clipPath = "inset(0 round 0)";
+        finalCopy.setAttribute("aria-hidden", "false");
+        announcement.textContent = "Stephanie.";
+        if (reducedMotion.matches) {
+          stage.classList.add("can-replay");
+          replay.disabled = false;
+        }
+      }
+
+      function frame(time) {
+        rafId = 0;
+        const dt = previousFrame ? Math.min(40, time - previousFrame) : 16;
+        previousFrame = time;
+        context.clearRect(0, 0, width, height);
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        for (const floater of floaters) drawFloater(floater, time, dt);
+
+        if (!startTime) startTime = time;
+        const elapsed = time - startTime;
+
+        if (!complete) {
+          if (reducedMotion.matches) {
+            enterFinale(time);
+          } else if (elapsed >= introDelay) {
+            stage.classList.add("is-running");
+            const nameElapsed = elapsed - introDelay;
+            const letterIndex = Math.floor(nameElapsed / letterDuration);
+            if (letterIndex >= name.length) {
+              enterFinale(time);
+            } else {
+              if (letterIndex !== activeLetter) buildLetter(letterIndex);
+              const inLetter = nameElapsed % letterDuration;
+              const gather = Math.min(1, inLetter / gatherDuration);
+              setPortraitReveal((letterIndex + gather * .82) / name.length * .91);
+              drawLetter(gather, time);
+            }
+          }
+        } else {
+          drawScatter(time);
+          if (time - finaleAt >= finaleHold && replay.disabled) {
+            stage.classList.add("can-replay");
+            replay.disabled = false;
+          }
+        }
+
+        rafId = window.requestAnimationFrame(frame);
+      }
+
+      function replayReveal() {
+        if (rafId) window.cancelAnimationFrame(rafId);
+        rafId = 0;
+        startTime = 0;
+        activeLetter = -1;
+        letterParticles = [];
+        finaleAt = 0;
+        complete = false;
+        previousFrame = 0;
+        finalCopy.setAttribute("aria-hidden", "true");
+        replay.disabled = true;
+        stage.classList.remove("is-running", "is-finale", "can-replay");
+        setPortraitReveal(0);
+        if (reducedMotion.matches) {
+          enterFinale(performance.now());
+        }
+        rafId = window.requestAnimationFrame(frame);
+      }
+
+      replay.addEventListener("click", replayReveal);
+      window.addEventListener("resize", resize, { passive: true });
+      reducedMotion.addEventListener("change", event => {
+        if (event.matches && !complete) enterFinale(performance.now());
+      });
+      resize();
+      rafId = window.requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
